@@ -1,0 +1,168 @@
+
+
+def model_metrics(model, test_features, test_labels):
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import precision_score,f1_score,recall_score
+    out=model.predict(test_features)
+    print("Accuracy : ",accuracy_score(out,test_labels)*100, flush=True)
+    print("Precision : ",precision_score(out,test_labels,average = 'weighted')*100, flush=True)
+    print("f1_score : ",f1_score(out,test_labels,average = "weighted")*100, flush=True)
+    print("recall score : ",recall_score(out,test_labels,average="weighted")*100, flush=True)
+    print("---------------------------------------------------------------------------", flush=True)
+
+
+# def logistic_regression_model(train_features, train_labels, test_features, test_labels,input_params={}, cv=5):
+#     from sklearn.linear_model import LogisticRegression
+#     from skopt import BayesSearchCV
+#     from skopt.space import Categorical,Real,Integer
+#     lr_clf = LogisticRegression()
+#     if not input_params:
+#         params = {
+#             'C' : Real(0.01,10,prior='uniform'),
+#             'solver' : Categorical(['newton-cg','lbfgs', 'liblinear', 'sag', 'saga']), # 'newton' does not support l1
+#             'max_iter' : Integer(50,1000)
+#         }
+#     else:
+#         params = input_params
+#     bayes_search = BayesSearchCV(lr_clf, params, cv=cv)
+#     bayes_search.fit(train_features, train_labels)
+#     print("-----------------------------------------------------------------------------", flush=True)
+#     print("Logistic Regression", flush=True)
+#     model_metrics(bayes_search, test_features, test_labels)
+#     return bayes_search
+
+
+# def svc_model(train_features, train_labels, test_features, test_labels, input_params={}, cv=5):
+#     from skopt import BayesSearchCV
+#     from skopt.space import Categorical,Real,Integer
+#     from sklearn.svm import SVC
+#     svc=SVC(probability=True)
+#     if not input_params:
+#         params = {
+#         'kernel' : Categorical(['linear','poly','rbf','sigmoid']),
+#         'degree' : Integer(1,10),
+#         'C' : Real(0.1,10),
+#         'gamma' : Real(0.001,5),
+#         'max_iter' : Integer(50,5000)
+#         }
+#     else:
+#         params = input_params
+#     bayes_search = BayesSearchCV(svc,params, cv=cv)
+#     bayes_search.fit(train_features,train_labels) 
+#     print("-----------------------------------------------------------------------------", flush=True)
+#     print("SVM model", flush=True)
+#     model_metrics(bayes_search, test_features, test_labels)
+#     return bayes_search
+
+
+
+# def knn(train_features, train_labels, test_features, test_labels, input_params):
+#     from sklearn.neighbors import KNeighborsClassifier
+#     bayes_search = KNeighborsClassifier(n_neighbors = input_params)
+#     bayes_search.fit(train_features,train_labels)   
+#     print("-----------------------------------------------------------------------------", flush=True)
+#     print("Gradient Boosting model", flush=True)
+#     model_metrics(bayes_search, test_features, test_labels)
+
+
+
+
+def random_forest_model(train_features, train_labels, test_features, test_labels, input_params={}, cv=5):
+    from sklearn.ensemble import RandomForestClassifier
+    from skopt import BayesSearchCV
+    from skopt.space import Categorical,Real,Integer
+    rc = RandomForestClassifier()
+    if not input_params:
+        params = {
+        'n_estimators' : Integer(30,150),
+        'max_depth' : Integer(1,15),
+        'min_samples_leaf' : Integer(4,6),
+        'max_features' : Categorical(['sqrt','log2',None]),
+        'criterion' : Categorical(['gini','entropy','log_loss']),
+        'max_leaf_nodes' : Integer(10,25),
+        'min_samples_split' : Integer(4,6)
+        }
+    else:
+        params = input_params
+    bayes_search = BayesSearchCV(rc,params, cv=cv)
+    bayes_search.fit(train_features,train_labels)
+    print("-----------------------------------------------------------------------------", flush=True)
+    print("Random Forest model", flush=True)
+    model_metrics(bayes_search, test_features, test_labels)
+    return bayes_search
+
+
+
+def gradient_boosting_model(train_features, train_labels, test_features, test_labels, input_params={}, cv=5):
+    from sklearn.ensemble import GradientBoostingClassifier
+    from skopt.space import Integer,Real,Categorical
+    from skopt import BayesSearchCV
+    xgtrain=GradientBoostingClassifier()
+    if not input_params:
+        params= {
+        'n_estimators' : Integer(10,100),
+        'max_depth' : Integer(1,15),
+        'min_samples_leaf' : Integer(2,6),
+        'max_features' : Categorical(['sqrt','log2',None]),
+    }
+    else:
+        params = input_params
+    bayes_search= BayesSearchCV(xgtrain, params, cv=cv)
+    bayes_search.fit(train_features,train_labels)
+    print("-----------------------------------------------------------------------------", flush=True)
+    print("Gradient Boosting model", flush=True)
+    model_metrics(bayes_search, test_features, test_labels)
+    return bayes_search
+
+
+
+
+
+
+def split_data(features,labels):
+    from sklearn.model_selection import train_test_split
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,test_size=0.3,random_state=0,stratify=labels)
+    return train_features, test_features, train_labels, test_labels
+
+
+
+
+        train_features, test_features, train_labels, test_labels = split_data(features, labels)
+        
+        # log_start_time = time.time()
+        # log = logistic_regression_model(train_features, train_labels, test_features, test_labels,cv=2)   
+        # log_end_time = time.time()
+
+        # svm_start_time = time.time()
+        # svm = svc_model(train_features, train_labels, test_features, test_labels,cv=2)
+        # svm_end_time = time.time()
+
+        random_start_time = time.time()
+        random = random_forest_model(train_features, train_labels, test_features, test_labels, cv=2)
+        random_end_time = time.time()
+        
+        gradient_start_time = time.time()
+        gradient_boost = gradient_boosting_model(train_features, train_labels, test_features, test_labels, cv=2)
+        gradient_end_time = time.time()
+
+        print("Traing_times --> ",each,flush=True)
+        print("Embeddings generation time --> ",(embeddings_end_time-start_time),flush=True)
+        print("Total training time --> ",(gradient_end_time-start_time),flush=True)
+        print("Gradient boosting time --> ",(gradient_end_time-gradient_start_time),flush=True)
+        print("Random Forest time --> ",(random_end_time-random_start_time),flush=True)
+        # print("SVM time --> ",(svm_end_time-svm_start_time),flush=True)
+        # print("Logistic time --> ",(log_end_time-log_start_time),flush=True)
+
+        print("-----------------------------------trained successfully------------------------------------------", flush=True)
+        import pickle
+        if each == "distil_bert":
+            main_path = "models/distil_bert/"
+        if each == "roberta":
+            main_path = "models/roberta/"
+       
+
+     
+        pickle.dump(random,open(main_path+'random.sav','wb'))
+        pickle.dump(gradient_boost,open(main_path+'gradient_boost.sav','wb'))
+        print(each," completed", flush=True)
+        print("-------------------------------------------------------------------------------------------------", flush=True)
